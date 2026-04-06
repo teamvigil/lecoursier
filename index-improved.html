@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Le Coursier</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        // Proper error handling for fetch requests with timeouts
+        function fetchWithTimeout(url, options, timeout = 5000) {
+            return new Promise((resolve, reject) => {
+                const timeoutId = setTimeout(() => reject(new Error('Request timed out')), timeout);
+                fetch(url, options)
+                    .then(response => {
+                        clearTimeout(timeoutId);
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(resolve)
+                    .catch(reject);
+            });
+        }
+
+        // Example CORS handling in fetch
+        async function getData() {
+            try {
+                const data = await fetchWithTimeout('https://api.example.com/data', {mode: 'cors'});
+                console.log(data);
+            } catch (error) {
+                console.error('Fetch error:', error);
+            }
+        }
+
+        // Lazy loading for images
+        document.addEventListener('DOMContentLoaded', function() {
+            const lazyImages = document.querySelectorAll('img.lazy');
+            const imageObserver = new IntersectionObserver(images => {
+                images.forEach(image => {
+                    if (image.isIntersecting) {
+                        const img = image.target;
+                        img.src = img.dataset.src;
+                        img.classList.remove('lazy');
+                        imageObserver.unobserve(img);
+                    }
+                });
+            });
+            lazyImages.forEach(image => imageObserver.observe(image));
+        });
+
+        // Debounced resize events
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                console.log('Resized!'); // Handle the resize event
+            }, 200);
+        });
+
+        // Proper email validation
+        function validateEmail(email) {
+            const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return re.test(email);
+        }
+
+        // XSS protection
+        function sanitizeInput(input) {
+            const div = document.createElement('div');
+            div.innerText = input;
+            return div.innerHTML;
+        }
+
+        // Service Worker setup instructions
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js')
+                    .then(registration => {
+                        console.log('Service Worker registered:', registration);
+                    })
+                    .catch(error => {
+                        console.error('Service Worker registration failed:', error);
+                    });
+            });
+        }
+
+        // Content Security Policy headers should be defined on the server side
+        // Example of CSP header:
+        // Content-Security-Policy: default-src 'self'; img-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self';
+
+        // Structured data example
+        const structuredData = {
+            '@context': 'https://schema.org',
+            '@type': 'Website',
+            'url': 'https://example.com',
+            'name': 'Le Coursier'
+        };
+        console.log('Structured Data:', JSON.stringify(structuredData));
+    </script>
+</head>
+<body>
+    <h1>Welcome to Le Coursier</h1>
+    <img class="lazy" data-src="image.jpg" alt="Description of image">
+    <footer>
+        <p>Contact us at: <a href="mailto:info@example.com">info@example.com</a></p>
+    </footer>
+</body>
+</html>
